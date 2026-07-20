@@ -1,0 +1,92 @@
+alias: Service Status Notifications
+description: >-
+  Notify when a monitored service changes status or an incident/maintenance
+  starts, is updated, or ends. Uses the unified script.notify wrapper.
+mode: queued
+max: 25
+triggers:
+  - trigger: state
+    entity_id:
+      - sensor.service_status_activision
+      - sensor.service_status_amazon_web_services
+      - sensor.service_status_battle_net
+      - sensor.service_status_bluesky
+      - sensor.service_status_claude
+      - sensor.service_status_cloudflare
+      - sensor.service_status_counter_strike_2
+      - sensor.service_status_devin
+      - sensor.service_status_digitalocean
+      - sensor.service_status_discord
+      - sensor.service_status_ea
+      - sensor.service_status_epic_games
+      - sensor.service_status_github
+      - sensor.service_status_google_cloud
+      - sensor.service_status_microsoft_azure
+      - sensor.service_status_mongodb
+      - sensor.service_status_netlify
+      - sensor.service_status_nintendo
+      - sensor.service_status_openai
+      - sensor.service_status_playstation_network
+      - sensor.service_status_reddit
+      - sensor.service_status_sentry
+      - sensor.service_status_steam
+      - sensor.service_status_twitch
+      - sensor.service_status_ubisoft
+      - sensor.service_status_vercel
+      - sensor.service_status_vrchat
+      - sensor.service_status_windsurf
+      - sensor.service_status_xbox_live
+variables:
+  service_name: >-
+    {{ trigger.to_state.attributes.get('friendly_name', trigger.entity_id)
+       | regex_replace('^Service Status ', '') }}
+  old_incidents: "{{ trigger.from_state.attributes.get('incidents', []) if trigger.from_state else [] }}"
+  new_incidents: "{{ trigger.to_state.attributes.get('incidents', []) if trigger.to_state else [] }}"
+  status_changed: >-
+    {{ trigger.from_state is not none and trigger.to_state is not none
+       and trigger.from_state.state != trigger.to_state.state }}
+  message_text: >-
+    {%- set ns = namespace(lines=[]) -%}
+    {%- if status_changed -%}
+      {%- set ns.lines = ns.lines + [trigger.from_state.state ~ ' → ' ~ trigger.to_state.state] -%}
+    {%- endif -%}
+    {%- set old_names = old_incidents | map(attribute='name', default='') | list -%}
+    {%- set new_names = new_incidents | map(attribute='name', default='') | list -%}
+    {%- for inc in new_incidents if inc.get('name') not in old_names -%}
+      {%- set emoji = '🔧' if inc.get('impact') == 'maintenance' else '🚨' -%}
+      {%- set ns.lines = ns.lines + [emoji ~ ' Started: ' ~ inc.get('name', '?') ~ ' (' ~ inc.get('impact', '?') ~ ', ' ~ inc.get('status', '?') ~ ')'] -%}
+    {%- endfor -%}
+    {%- for inc in new_incidents if inc.get('name') in old_names -%}
+      {%- set old_inc = old_incidents | selectattr('name', 'eq', inc.get('name')) | first -%}
+      {%- if old_inc.get('status') != inc.get('status') or old_inc.get('updated_at') != inc.get('updated_at') -%}
+        {%- set ns.lines = ns.lines + ['🔄 Updated: ' ~ inc.get('name', '?') ~ ' → ' ~ inc.get('status', '?')] -%}
+      {%- endif -%}
+    {%- endfor -%}
+    {%- for inc in old_incidents if inc.get('name') not in new_names -%}
+      {%- set ns.lines = ns.lines + ['✅ Ended: ' ~ inc.get('name', '?')] -%}
+    {%- endfor -%}
+    {{ ns.lines | join('\n') }}
+conditions:
+  - condition: template
+    value_template: >-
+      {{ trigger.from_state is not none and trigger.to_state is not none
+         and trigger.from_state.state not in ['unknown', 'unavailable']
+         and trigger.to_state.state not in ['unknown', 'unavailable'] }}
+  - condition: template
+    value_template: "{{ message_text != '' }}"
+actions:
+  - action: script.notify
+    data:
+      title: "{{ service_name }}: {{ trigger.to_state.state }}"
+      message: "{{ message_text }}"
+      severity: blu
+      tag: "service-status-{{ trigger.entity_id.split('.')[1] }}"
+      icon: "{{ trigger.to_state.attributes.get('entity_picture', '') }}"
+      image: "{{ trigger.to_state.attributes.get('entity_picture', '') }}"
+      callback_url: "{{ trigger.to_state.attributes.get('page_url', '') }}"
+      priority: >-
+        {{ 'high' if status_changed
+           and trigger.to_state.state != 'All Systems Operational'
+           and trigger.to_state.state != 'Under Maintenance'
+           else 'default' }}
+      timeout: 10000
