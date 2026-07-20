@@ -1,9 +1,9 @@
 """Sensor entities for Service Status.
 
 One sensor per monitored service plus one overall sensor. The state is the
-raw status text reported by the API (e.g. "All Systems Operational"); the
-normalized severity is exposed as an attribute. Services are discovered from
-the poll data, and services that appear later are added on the fly.
+raw status text reported by the API (e.g. "All Systems Operational").
+Services are discovered from the poll data, and services that appear later
+are added on the fly.
 """
 
 from __future__ import annotations
@@ -13,7 +13,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import ServiceStatusConfigEntry
-from .const import STATE_SEVERITY, STATE_UNKNOWN
+from .const import STATE_UNKNOWN
 from .coordinator import ServiceStatusCoordinator
 from .entity import ServiceStatusEntity
 from .models import ServiceStatus
@@ -60,9 +60,9 @@ class OverallStatusSensor(ServiceStatusEntity, SensorEntity):
         if data is None:
             return STATE_UNKNOWN
         worst = data.worst_service
-        if worst is None:
+        if worst is None or not worst.status_text:
             return STATE_UNKNOWN
-        return worst.status_text or worst.state
+        return worst.status_text
 
     @property
     def extra_state_attributes(self) -> dict:
@@ -72,11 +72,11 @@ class OverallStatusSensor(ServiceStatusEntity, SensorEntity):
         counts: dict[str, int] = {}
         affected: list[str] = []
         for service in data.services.values():
-            counts[service.state] = counts.get(service.state, 0) + 1
-            if STATE_SEVERITY[service.state] > 0:
+            indicator = service.indicator or "unknown"
+            counts[indicator] = counts.get(indicator, 0) + 1
+            if service.severity > 0:
                 affected.append(service.name)
         return {
-            "severity": data.overall_state,
             "services_total": len(data.services),
             "services_affected": sorted(affected),
             "counts": counts,
@@ -108,9 +108,9 @@ class StatusServiceSensor(ServiceStatusEntity, SensorEntity):
     @property
     def native_value(self) -> str:
         service = self._service
-        if service is None:
+        if service is None or not service.status_text:
             return STATE_UNKNOWN
-        return service.status_text or service.state
+        return service.status_text
 
     @property
     def entity_picture(self) -> str | None:
@@ -125,7 +125,6 @@ class StatusServiceSensor(ServiceStatusEntity, SensorEntity):
         return {
             k: v
             for k, v in {
-                "severity": service.state,
                 "indicator": service.indicator,
                 "operational": service.operational,
                 "maintenance": service.maintenance,

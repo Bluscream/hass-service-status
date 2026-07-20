@@ -22,32 +22,17 @@ MIN_SCAN_INTERVAL = 60
 # Request timeout: generous because ?wait=true blocks until fresh data exists.
 REQUEST_TIMEOUT = 90
 
-# Normalized severity values (exposed as the "severity" attribute; the
-# sensor state itself is the raw status text from the API)
-STATE_ALL_OPERATIONAL = "All Operational"
-STATE_MAINTENANCE = "Maintenance"
-STATE_MINOR_OUTAGE = "Minor Outage"
-STATE_MAJOR_OUTAGE = "Major Outage"
-STATE_TOTAL_OUTAGE = "Total Outage"
+# Fallback state when the API reports no status text for a service.
 STATE_UNKNOWN = "Unknown"
 
-# Rank used to pick the worst state for the overall sensor.
-STATE_SEVERITY = {
-    STATE_UNKNOWN: -1,
-    STATE_ALL_OPERATIONAL: 0,
-    STATE_MAINTENANCE: 1,
-    STATE_MINOR_OUTAGE: 2,
-    STATE_MAJOR_OUTAGE: 3,
-    STATE_TOTAL_OUTAGE: 4,
-}
-
-# Upstream "indicator" values mapped onto our states.
-INDICATOR_TO_STATE = {
-    "none": STATE_ALL_OPERATIONAL,
-    "operational": STATE_ALL_OPERATIONAL,
-    "maintenance": STATE_MAINTENANCE,
-    "minor": STATE_MINOR_OUTAGE,
-    "major": STATE_MAJOR_OUTAGE,
-    "critical": STATE_TOTAL_OUTAGE,
-    "offline": STATE_TOTAL_OUTAGE,
+# Internal ranking of the upstream "indicator" values, used only to pick
+# the worst-affected service for the overall sensor. Never exposed.
+INDICATOR_SEVERITY = {
+    "none": 0,
+    "operational": 0,
+    "maintenance": 1,
+    "minor": 2,
+    "major": 3,
+    "critical": 4,
+    "offline": 4,
 }

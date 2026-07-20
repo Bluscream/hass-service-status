@@ -4,13 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from .const import (
-    INDICATOR_TO_STATE,
-    STATE_ALL_OPERATIONAL,
-    STATE_MINOR_OUTAGE,
-    STATE_SEVERITY,
-    STATE_UNKNOWN,
-)
+from .const import INDICATOR_SEVERITY
 
 
 @dataclass(frozen=True)
@@ -95,17 +89,17 @@ class ServiceStatus:
         )
 
     @property
-    def state(self) -> str:
-        """Map the upstream indicator onto one of our enum states."""
+    def severity(self) -> int:
+        """Internal ranking of how badly this service is affected."""
         if self.indicator:
-            mapped = INDICATOR_TO_STATE.get(self.indicator.lower())
-            if mapped:
-                return mapped
+            ranked = INDICATOR_SEVERITY.get(self.indicator.lower())
+            if ranked is not None:
+                return ranked
         if self.operational is True:
-            return STATE_ALL_OPERATIONAL
+            return 0
         if self.operational is False:
-            return STATE_MINOR_OUTAGE
-        return STATE_UNKNOWN
+            return 2
+        return -1
 
 
 @dataclass
@@ -120,11 +114,6 @@ class StatusData:
     def worst_service(self) -> ServiceStatus | None:
         worst: ServiceStatus | None = None
         for service in self.services.values():
-            if worst is None or STATE_SEVERITY[service.state] > STATE_SEVERITY[worst.state]:
+            if worst is None or service.severity > worst.severity:
                 worst = service
         return worst
-
-    @property
-    def overall_state(self) -> str:
-        worst = self.worst_service
-        return worst.state if worst else STATE_UNKNOWN
