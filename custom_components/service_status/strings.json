@@ -1,0 +1,37 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add a status endpoint",
+        "description": "Point the integration at an aggregated status API (e.g. `https://lookup.minopia.de/api/status/all`). One sensor is created per reported service.",
+        "data": {
+          "url": "API URL",
+          "name": "Device name",
+          "scan_interval": "Poll interval (seconds)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Could not reach the API URL.",
+      "invalid_data": "The URL responded, but not with the expected status JSON."
+    },
+    "abort": {
+      "already_configured": "This URL is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Service Status options",
+        "data": {
+          "url": "API URL",
+          "scan_interval": "Poll interval (seconds)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Could not reach the API URL.",
+      "invalid_data": "The URL responded, but not with the expected status JSON."
+    }
+  }
+}
