@@ -22,22 +22,14 @@ MIN_SCAN_INTERVAL = 60
 # Request timeout: generous because ?wait=true blocks until fresh data exists.
 REQUEST_TIMEOUT = 90
 
-# Sensor state values (worst to best matters for the overall sensor)
+# Normalized severity values (exposed as the "severity" attribute; the
+# sensor state itself is the raw status text from the API)
 STATE_ALL_OPERATIONAL = "All Operational"
 STATE_MAINTENANCE = "Maintenance"
 STATE_MINOR_OUTAGE = "Minor Outage"
 STATE_MAJOR_OUTAGE = "Major Outage"
 STATE_TOTAL_OUTAGE = "Total Outage"
 STATE_UNKNOWN = "Unknown"
-
-STATE_OPTIONS = [
-    STATE_ALL_OPERATIONAL,
-    STATE_MAINTENANCE,
-    STATE_MINOR_OUTAGE,
-    STATE_MAJOR_OUTAGE,
-    STATE_TOTAL_OUTAGE,
-    STATE_UNKNOWN,
-]
 
 # Rank used to pick the worst state for the overall sensor.
 STATE_SEVERITY = {

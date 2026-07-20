@@ -117,9 +117,14 @@ class StatusData:
     lookup_time: str | None = None
 
     @property
-    def overall_state(self) -> str:
-        worst = STATE_UNKNOWN
+    def worst_service(self) -> ServiceStatus | None:
+        worst: ServiceStatus | None = None
         for service in self.services.values():
-            if STATE_SEVERITY[service.state] > STATE_SEVERITY[worst]:
-                worst = service.state
+            if worst is None or STATE_SEVERITY[service.state] > STATE_SEVERITY[worst.state]:
+                worst = service
         return worst
+
+    @property
+    def overall_state(self) -> str:
+        worst = self.worst_service
+        return worst.state if worst else STATE_UNKNOWN

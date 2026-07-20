@@ -1,18 +1,19 @@
 """Sensor entities for Service Status.
 
-One enum sensor per monitored service plus one overall sensor. Services are
-discovered from the poll data, and services that appear later are added on
-the fly.
+One sensor per monitored service plus one overall sensor. The state is the
+raw status text reported by the API (e.g. "All Systems Operational"); the
+normalized severity is exposed as an attribute. Services are discovered from
+the poll data, and services that appear later are added on the fly.
 """
 
 from __future__ import annotations
 
-from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
+from homeassistant.components.sensor import SensorEntity
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import ServiceStatusConfigEntry
-from .const import STATE_OPTIONS, STATE_SEVERITY, STATE_UNKNOWN
+from .const import STATE_SEVERITY, STATE_UNKNOWN
 from .coordinator import ServiceStatusCoordinator
 from .entity import ServiceStatusEntity
 from .models import ServiceStatus
@@ -45,10 +46,8 @@ async def async_setup_entry(
 
 
 class OverallStatusSensor(ServiceStatusEntity, SensorEntity):
-    """Worst status across all monitored services."""
+    """Status text of the worst-affected service."""
 
-    _attr_device_class = SensorDeviceClass.ENUM
-    _attr_options = STATE_OPTIONS
     _attr_name = "Overall"
     _attr_icon = "mdi:server-network"
 
@@ -60,7 +59,10 @@ class OverallStatusSensor(ServiceStatusEntity, SensorEntity):
         data = self.coordinator.data
         if data is None:
             return STATE_UNKNOWN
-        return data.overall_state
+        worst = data.worst_service
+        if worst is None:
+            return STATE_UNKNOWN
+        return worst.status_text or worst.state
 
     @property
     def extra_state_attributes(self) -> dict:
@@ -74,6 +76,7 @@ class OverallStatusSensor(ServiceStatusEntity, SensorEntity):
             if STATE_SEVERITY[service.state] > 0:
                 affected.append(service.name)
         return {
+            "severity": data.overall_state,
             "services_total": len(data.services),
             "services_affected": sorted(affected),
             "counts": counts,
@@ -84,9 +87,6 @@ class OverallStatusSensor(ServiceStatusEntity, SensorEntity):
 
 class StatusServiceSensor(ServiceStatusEntity, SensorEntity):
     """Status of a single service."""
-
-    _attr_device_class = SensorDeviceClass.ENUM
-    _attr_options = STATE_OPTIONS
 
     def __init__(self, coordinator: ServiceStatusCoordinator, slug: str) -> None:
         super().__init__(coordinator, slug)
@@ -110,7 +110,7 @@ class StatusServiceSensor(ServiceStatusEntity, SensorEntity):
         service = self._service
         if service is None:
             return STATE_UNKNOWN
-        return service.state
+        return service.status_text or service.state
 
     @property
     def entity_picture(self) -> str | None:
@@ -125,7 +125,7 @@ class StatusServiceSensor(ServiceStatusEntity, SensorEntity):
         return {
             k: v
             for k, v in {
-                "status": service.status_text,
+                "severity": service.state,
                 "indicator": service.indicator,
                 "operational": service.operational,
                 "maintenance": service.maintenance,

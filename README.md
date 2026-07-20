@@ -12,14 +12,17 @@ plus an overall summary sensor, all grouped under a single device.
   `{"services": [...]}` object).
 - **One device, one sensor per service.** New services reported by the API are
   added automatically without a restart.
-- **Enum states**: `All Operational`, `Maintenance`, `Minor Outage`,
-  `Major Outage`, `Total Outage`, `Unknown` — ready for automations and
-  conditional dashboard cards.
-- **Rich attributes** on every sensor: raw status text, indicator, category,
+- **States are the raw status text** reported by each status page (e.g.
+  `All Systems Operational`, `Minor Service Outage`, `Under Maintenance`).
+  A normalized `severity` attribute (`All Operational`, `Maintenance`,
+  `Minor Outage`, `Major Outage`, `Total Outage`, `Unknown`) is provided for
+  stable automation triggers.
+- **Rich attributes** on every sensor: severity, indicator, category,
   status-page URL, active incident count, full incident list (name, impact,
   status, URL, timestamps), brand/status colors, and last-update time.
-- **Overall sensor** with the worst state across all services, per-state
-  counts, the list of affected services, and all active incidents.
+- **Overall sensor** showing the status text of the worst-affected service,
+  with per-severity counts, the list of affected services, and all active
+  incidents as attributes.
 - Service icons are used as entity pictures automatically.
 
 ## Installation
@@ -54,6 +57,7 @@ alias: Notify on Discord outage
 triggers:
   - trigger: state
     entity_id: sensor.service_status_discord
+    attribute: severity
     to:
       - Minor Outage
       - Major Outage
@@ -63,6 +67,6 @@ actions:
     data:
       title: "Discord: {{ states('sensor.service_status_discord') }}"
       message: >-
-        {{ state_attr('sensor.service_status_discord', 'status') }}
+        Severity: {{ state_attr('sensor.service_status_discord', 'severity') }}
         ({{ state_attr('sensor.service_status_discord', 'active_incidents') }} incidents)
 ```
