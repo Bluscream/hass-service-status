@@ -1,9 +1,8 @@
 """Sensor entities for Service Status.
 
-One sensor per monitored service plus one overall sensor. The state is the
-raw status text reported by the API (e.g. "All Systems Operational").
-Services are discovered from the poll data, and services that appear later
-are added on the fly.
+One sensor per monitored service. The state is the raw status text reported
+by the API (e.g. "All Systems Operational"). Services are discovered from
+the poll data, and services that appear later are added on the fly.
 """
 
 from __future__ import annotations
@@ -24,7 +23,7 @@ async def async_setup_entry(
     entry: ServiceStatusConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the overall sensor and one sensor per discovered service."""
+    """Set up one sensor per discovered service."""
     coordinator = entry.runtime_data
     known: set[str] = set()
 
@@ -40,42 +39,8 @@ async def async_setup_entry(
                 StatusServiceSensor(coordinator, slug) for slug in new_slugs
             )
 
-    async_add_entities([OverallStatusSensor(coordinator)])
     _sync_services()
     entry.async_on_unload(coordinator.async_add_listener(_sync_services))
-
-
-class OverallStatusSensor(ServiceStatusEntity, SensorEntity):
-    """Summary across all monitored services."""
-
-    _attr_name = "Overall"
-    _attr_icon = "mdi:server-network"
-
-    def __init__(self, coordinator: ServiceStatusCoordinator) -> None:
-        super().__init__(coordinator, "overall")
-
-    @property
-    def native_value(self) -> str:
-        data = self.coordinator.data
-        if data is None or not data.services:
-            return STATE_UNKNOWN
-        affected = sum(1 for s in data.services.values() if s.affected)
-        if not affected:
-            return "All Systems Operational"
-        return f"{affected} Service{'s' if affected != 1 else ''} Affected"
-
-    @property
-    def extra_state_attributes(self) -> dict:
-        data = self.coordinator.data
-        if data is None:
-            return {}
-        affected = [s.name for s in data.services.values() if s.affected]
-        return {
-            "services_total": len(data.services),
-            "services_affected": affected,
-            "incidents": [inc.as_attribute() | {"service": inc.service} for inc in data.incidents],
-            "lookup_time": data.lookup_time,
-        }
 
 
 class StatusServiceSensor(ServiceStatusEntity, SensorEntity):

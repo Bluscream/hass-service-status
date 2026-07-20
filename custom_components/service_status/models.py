@@ -84,12 +84,6 @@ class ServiceStatus:
             incidents=incidents,
         )
 
-    @property
-    def affected(self) -> bool:
-        """Whether this service reports a problem or maintenance."""
-        return self.operational is False or self.maintenance
-
-
 @dataclass
 class StatusData:
     """Everything one poll returned."""

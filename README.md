@@ -2,8 +2,8 @@
 
 A custom integration that polls an aggregated service-status API (such as
 [`lookup.minopia.de`](https://lookup.minopia.de/api/status/all)) and exposes
-one sensor per monitored service (Discord, GitHub, Steam, AWS, Cloudflare, …)
-plus an overall summary sensor, all grouped under a single device.
+one sensor per monitored service (Discord, GitHub, Steam, AWS, Cloudflare, …),
+all grouped under a single device.
 
 ## Features
 
@@ -18,9 +18,6 @@ plus an overall summary sensor, all grouped under a single device.
 - **Rich attributes** on every sensor: category,
   status-page URL, active incident count, full incident list (name, impact,
   status, URL, timestamps), brand/status colors, and last-update time.
-- **Overall sensor** summarizing all services (`All Systems Operational` or
-  `N Services Affected`), with the list of affected services and all active
-  incidents as attributes.
 - Service icons are used as entity pictures automatically.
 
 ## Installation
