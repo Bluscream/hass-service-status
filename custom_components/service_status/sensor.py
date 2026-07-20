@@ -46,7 +46,7 @@ async def async_setup_entry(
 
 
 class OverallStatusSensor(ServiceStatusEntity, SensorEntity):
-    """Status text of the worst-affected service."""
+    """Summary across all monitored services."""
 
     _attr_name = "Overall"
     _attr_icon = "mdi:server-network"
@@ -57,29 +57,22 @@ class OverallStatusSensor(ServiceStatusEntity, SensorEntity):
     @property
     def native_value(self) -> str:
         data = self.coordinator.data
-        if data is None:
+        if data is None or not data.services:
             return STATE_UNKNOWN
-        worst = data.worst_service
-        if worst is None or not worst.status_text:
-            return STATE_UNKNOWN
-        return worst.status_text
+        affected = sum(1 for s in data.services.values() if s.affected)
+        if not affected:
+            return "All Systems Operational"
+        return f"{affected} Service{'s' if affected != 1 else ''} Affected"
 
     @property
     def extra_state_attributes(self) -> dict:
         data = self.coordinator.data
         if data is None:
             return {}
-        counts: dict[str, int] = {}
-        affected: list[str] = []
-        for service in data.services.values():
-            indicator = service.indicator or "unknown"
-            counts[indicator] = counts.get(indicator, 0) + 1
-            if service.severity > 0:
-                affected.append(service.name)
+        affected = [s.name for s in data.services.values() if s.affected]
         return {
             "services_total": len(data.services),
-            "services_affected": sorted(affected),
-            "counts": counts,
+            "services_affected": affected,
             "incidents": [inc.as_attribute() | {"service": inc.service} for inc in data.incidents],
             "lookup_time": data.lookup_time,
         }
@@ -125,7 +118,6 @@ class StatusServiceSensor(ServiceStatusEntity, SensorEntity):
         return {
             k: v
             for k, v in {
-                "indicator": service.indicator,
                 "operational": service.operational,
                 "maintenance": service.maintenance,
                 "category": service.category,

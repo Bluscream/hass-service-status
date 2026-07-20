@@ -77,6 +77,7 @@ class StatusApiClient:
                 continue
             own_incidents = tuple(i for i in incidents if i.service == slug)
             services[slug] = ServiceStatus.from_dict(item, own_incidents)
+        services = dict(sorted(services.items(), key=lambda kv: kv[1].name.lower()))
 
         return StatusData(
             services=services,

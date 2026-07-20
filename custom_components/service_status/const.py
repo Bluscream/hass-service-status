@@ -24,15 +24,3 @@ REQUEST_TIMEOUT = 90
 
 # Fallback state when the API reports no status text for a service.
 STATE_UNKNOWN = "Unknown"
-
-# Internal ranking of the upstream "indicator" values, used only to pick
-# the worst-affected service for the overall sensor. Never exposed.
-INDICATOR_SEVERITY = {
-    "none": 0,
-    "operational": 0,
-    "maintenance": 1,
-    "minor": 2,
-    "major": 3,
-    "critical": 4,
-    "offline": 4,
-}

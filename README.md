@@ -14,13 +14,12 @@ plus an overall summary sensor, all grouped under a single device.
   added automatically without a restart.
 - **States are the raw status text** reported by each status page (e.g.
   `All Systems Operational`, `Minor Service Outage`, `Under Maintenance`).
-  For stable automation triggers use the `indicator` attribute
-  (`none` / `maintenance` / `minor` / `major` / `critical`).
-- **Rich attributes** on every sensor: indicator, category,
+  For stable automation triggers use the boolean `operational` attribute.
+- **Rich attributes** on every sensor: category,
   status-page URL, active incident count, full incident list (name, impact,
   status, URL, timestamps), brand/status colors, and last-update time.
-- **Overall sensor** showing the status text of the worst-affected service,
-  with per-indicator counts, the list of affected services, and all active
+- **Overall sensor** summarizing all services (`All Systems Operational` or
+  `N Services Affected`), with the list of affected services and all active
   incidents as attributes.
 - Service icons are used as entity pictures automatically.
 
@@ -56,16 +55,13 @@ alias: Notify on Discord outage
 triggers:
   - trigger: state
     entity_id: sensor.service_status_discord
-    attribute: indicator
-    to:
-      - minor
-      - major
-      - critical
+    attribute: operational
+    to: false
 actions:
   - action: notify.notify
     data:
       title: "Discord: {{ states('sensor.service_status_discord') }}"
       message: >-
-        Impact: {{ state_attr('sensor.service_status_discord', 'indicator') }}
-        ({{ state_attr('sensor.service_status_discord', 'active_incidents') }} incidents)
+        {{ state_attr('sensor.service_status_discord', 'active_incidents') }}
+        active incidents
 ```

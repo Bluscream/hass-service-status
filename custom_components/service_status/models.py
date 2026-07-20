@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from .const import INDICATOR_SEVERITY
-
 
 @dataclass(frozen=True)
 class Incident:
@@ -55,7 +53,6 @@ class ServiceStatus:
 
     slug: str
     name: str
-    indicator: str | None = None
     status_text: str | None = None
     operational: bool | None = None
     updated_at: str | None = None
@@ -74,7 +71,6 @@ class ServiceStatus:
         return cls(
             slug=slug,
             name=raw.get("name") or slug,
-            indicator=raw.get("indicator"),
             status_text=raw.get("status"),
             operational=raw.get("operational"),
             updated_at=raw.get("updated_at"),
@@ -89,17 +85,9 @@ class ServiceStatus:
         )
 
     @property
-    def severity(self) -> int:
-        """Internal ranking of how badly this service is affected."""
-        if self.indicator:
-            ranked = INDICATOR_SEVERITY.get(self.indicator.lower())
-            if ranked is not None:
-                return ranked
-        if self.operational is True:
-            return 0
-        if self.operational is False:
-            return 2
-        return -1
+    def affected(self) -> bool:
+        """Whether this service reports a problem or maintenance."""
+        return self.operational is False or self.maintenance
 
 
 @dataclass
@@ -109,11 +97,3 @@ class StatusData:
     services: dict[str, ServiceStatus] = field(default_factory=dict)
     incidents: tuple[Incident, ...] = ()
     lookup_time: str | None = None
-
-    @property
-    def worst_service(self) -> ServiceStatus | None:
-        worst: ServiceStatus | None = None
-        for service in self.services.values():
-            if worst is None or service.severity > worst.severity:
-                worst = service
-        return worst
