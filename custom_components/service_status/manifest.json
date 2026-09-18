@@ -1,12 +1,15 @@
 {
   "domain": "service_status",
   "name": "Service Status",
-  "codeowners": ["@Bluscream", "@claude"],
+  "codeowners": [
+    "@Bluscream",
+    "@claude"
+  ],
   "config_flow": true,
   "documentation": "https://github.com/Bluscream/hass-service-status",
   "integration_type": "service",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/Bluscream/hass-service-status/issues",
   "requirements": [],
-  "version": "1.0.0"
+  "version": "1.0.1"
 }
