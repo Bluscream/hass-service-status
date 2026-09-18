@@ -11,5 +11,5 @@
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/Bluscream/hass-service-status/issues",
   "requirements": [],
-  "version": "1.0.1"
+  "version": "1.0.2"
 }

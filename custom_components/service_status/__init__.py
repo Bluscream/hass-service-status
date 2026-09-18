@@ -15,9 +15,7 @@ _LOGGER = logging.getLogger(__name__)
 type ServiceStatusConfigEntry = ConfigEntry[ServiceStatusCoordinator]
 
 
-async def async_setup_entry(
-    hass: HomeAssistant, entry: ServiceStatusConfigEntry
-) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: ServiceStatusConfigEntry) -> bool:
     """Set up Service Status from a config entry."""
     coordinator = ServiceStatusCoordinator(hass, entry)
     await coordinator.async_config_entry_first_refresh()
@@ -28,15 +26,11 @@ async def async_setup_entry(
     return True
 
 
-async def async_unload_entry(
-    hass: HomeAssistant, entry: ServiceStatusConfigEntry
-) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: ServiceStatusConfigEntry) -> bool:
     """Unload a config entry."""
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 
-async def _async_update_listener(
-    hass: HomeAssistant, entry: ServiceStatusConfigEntry
-) -> None:
+async def _async_update_listener(hass: HomeAssistant, entry: ServiceStatusConfigEntry) -> None:
     """Reload the entry when its options change."""
     await hass.config_entries.async_reload(entry.entry_id)

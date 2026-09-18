@@ -35,9 +35,7 @@ async def async_setup_entry(
         new_slugs = [slug for slug in data.services if slug not in known]
         if new_slugs:
             known.update(new_slugs)
-            async_add_entities(
-                StatusServiceSensor(coordinator, slug) for slug in new_slugs
-            )
+            async_add_entities(StatusServiceSensor(coordinator, slug) for slug in new_slugs)
 
     _sync_services()
     entry.async_on_unload(coordinator.async_add_listener(_sync_services))

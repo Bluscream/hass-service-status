@@ -84,6 +84,7 @@ class ServiceStatus:
             incidents=incidents,
         )
 
+
 @dataclass
 class StatusData:
     """Everything one poll returned."""

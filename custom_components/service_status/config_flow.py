@@ -51,9 +51,7 @@ class ServiceStatusConfigFlow(ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
-    async def async_step_user(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         errors: dict[str, str] = {}
         if user_input is not None:
             url = user_input[CONF_URL].strip()
@@ -81,9 +79,7 @@ class ServiceStatusConfigFlow(ConfigFlow, domain=DOMAIN):
             {
                 vol.Required(CONF_URL, default=DEFAULT_URL): _URL_SELECTOR,
                 vol.Optional(CONF_NAME, default=DEFAULT_NAME): str,
-                vol.Required(
-                    CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
-                ): _INTERVAL_SELECTOR,
+                vol.Required(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): _INTERVAL_SELECTOR,
             }
         )
         return self.async_show_form(step_id="user", data_schema=schema, errors=errors)
@@ -97,9 +93,7 @@ class ServiceStatusConfigFlow(ConfigFlow, domain=DOMAIN):
 class ServiceStatusOptionsFlow(OptionsFlow):
     """Adjust URL and polling interval."""
 
-    async def async_step_init(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         errors: dict[str, str] = {}
         entry = self.config_entry
         if user_input is not None:
@@ -124,9 +118,7 @@ class ServiceStatusOptionsFlow(OptionsFlow):
         schema = vol.Schema(
             {
                 vol.Required(CONF_URL, default=current_url): _URL_SELECTOR,
-                vol.Required(
-                    CONF_SCAN_INTERVAL, default=current_scan
-                ): _INTERVAL_SELECTOR,
+                vol.Required(CONF_SCAN_INTERVAL, default=current_scan): _INTERVAL_SELECTOR,
             }
         )
         return self.async_show_form(step_id="init", data_schema=schema, errors=errors)
